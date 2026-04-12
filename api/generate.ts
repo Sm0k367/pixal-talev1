@@ -18,13 +18,19 @@ const GENRE_PROMPTS: Record<string, string> = {
   scifi: `You are a visionary sci-fi author exploring the future. This image is from a world beyond our reality. Write a mind-bending, futuristic opening (120-150 words) that challenges perception. Return ONLY JSON: { "title": "a 3-5 word futuristic title", "mood": "one word", "story": "text" }`,
 }
 
+const MODE_PROMPTS: Record<string, (customPrompt?: string) => string> = {
+  lifebook: (customPrompt?: string) => customPrompt || `Write a personal memoir chapter of 150-200 words. Include reflection, emotion, and vivid sensory details. Return ONLY JSON: { "title": "chapter title", "mood": "one word emotion", "story": "text", "content": "text" }`,
+  
+  comics: (customPrompt?: string) => customPrompt || `Write witty comic book dialogue and narration for this panel (50-80 words). Keep it punchy and visual. Return ONLY JSON: { "title": "panel title", "mood": "one word tone", "story": "dialogue", "content": "narration" }`,
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
   try {
-    const { imageBase64, mimeType, genre } = req.body
+    const { imageBase64, mimeType, mode = 'story', genre, prompt: customPrompt } = req.body
     const apiKey = process.env.GROQ_API_KEY
 
     if (!apiKey) {
@@ -35,7 +41,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Missing image data' })
     }
 
-    const prompt = GENRE_PROMPTS[genre] || GENRE_PROMPTS.cinematic
+    let prompt: string
+    
+    if (mode === 'story') {
+      prompt = GENRE_PROMPTS[genre] || GENRE_PROMPTS.cinematic
+    } else if (mode === 'lifebook' || mode === 'comics') {
+      prompt = MODE_PROMPTS[mode]?.(customPrompt) || customPrompt || 'Generate appropriate content for this image.'
+    } else {
+      prompt = customPrompt || 'Generate appropriate content for this image.'
+    }
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -73,9 +87,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json(parsed)
     } catch {
       return res.status(200).json({
-        title: 'Untitled Story',
+        title: 'Untitled',
         mood: 'mysterious',
         story: content,
+        content: content,
       })
     }
   } catch (error) {

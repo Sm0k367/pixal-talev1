@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Sparkles, BookOpen } from 'lucide-react'
+import { BookOpen } from 'lucide-react'
 import { Story } from '../store'
 
 interface StoryDisplayProps {

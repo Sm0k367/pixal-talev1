@@ -1,27 +1,42 @@
 import { useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Upload, Image as ImageIcon } from 'lucide-react'
+import { Upload } from 'lucide-react'
 
 interface UploadZoneProps {
   preview: string
   onFileSelect: (file: File) => void
   isLoading: boolean
+  allowMultiple?: boolean
 }
 
-export default function UploadZone({ preview, onFileSelect, isLoading }: UploadZoneProps) {
+export default function UploadZone({ preview, onFileSelect, isLoading, allowMultiple = false }: UploadZoneProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleDragDrop = (e: React.DragEvent) => {
     e.preventDefault()
-    const file = e.dataTransfer.files?.[0]
-    if (file?.type.startsWith('image/')) {
-      onFileSelect(file)
+    if (allowMultiple) {
+      const files = Array.from(e.dataTransfer.files)
+      files.forEach(file => {
+        if (file.type.startsWith('image/')) {
+          onFileSelect(file)
+        }
+      })
+    } else {
+      const file = e.dataTransfer.files?.[0]
+      if (file?.type.startsWith('image/')) {
+        onFileSelect(file)
+      }
     }
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) onFileSelect(file)
+    const files = e.target.files
+    if (allowMultiple && files) {
+      Array.from(files).forEach(file => onFileSelect(file))
+    } else {
+      const file = files?.[0]
+      if (file) onFileSelect(file)
+    }
   }
 
   return (
@@ -91,6 +106,7 @@ export default function UploadZone({ preview, onFileSelect, isLoading }: UploadZ
         accept="image/*"
         onChange={handleFileChange}
         disabled={isLoading}
+        multiple={allowMultiple}
         className="hidden"
       />
     </motion.div>

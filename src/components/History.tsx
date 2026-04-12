@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { History as HistoryIcon, Trash2 } from 'lucide-react'
+import { History as HistoryIcon } from 'lucide-react'
 import { useStore, Story } from '../store'
 
 interface HistoryProps {
@@ -7,7 +7,7 @@ interface HistoryProps {
 }
 
 export default function History({ stories }: HistoryProps) {
-  const { setCurrentStory, clearHistory } = useStore()
+  const { setCurrentStory } = useStore()
 
   return (
     <motion.div
@@ -21,15 +21,6 @@ export default function History({ stories }: HistoryProps) {
           <HistoryIcon className="w-5 h-5 text-accent-cyan" />
           <h3 className="text-lg font-semibold text-white">Story Archive</h3>
         </div>
-        {stories.length > 0 && (
-          <button
-            onClick={() => clearHistory()}
-            className="p-1 hover:bg-white/10 rounded-lg transition-colors"
-            title="Clear history"
-          >
-            <Trash2 className="w-4 h-4 text-white/50 hover:text-accent-pink" />
-          </button>
-        )}
       </div>
 
       {stories.length === 0 ? (
