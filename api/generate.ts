@@ -24,6 +24,25 @@ const MODE_PROMPTS: Record<string, (customPrompt?: string) => string> = {
   comics: (customPrompt?: string) => customPrompt || `Write witty comic book dialogue and narration for this panel (50-80 words). Keep it punchy and visual. Return ONLY JSON: { "title": "panel title", "mood": "one word tone", "story": "dialogue", "content": "narration" }`,
 }
 
+// Best Groq models for each mode
+const MODEL_CONFIG: Record<string, { model: string; temperature: number; max_tokens: number }> = {
+  story: {
+    model: 'llama-3.1-70b-versatile',      // Best for creative storytelling
+    temperature: 0.95,                      // High creativity
+    max_tokens: 400,
+  },
+  lifebook: {
+    model: 'llama-3.1-70b-versatile',      // Best for personal narrative
+    temperature: 0.8,                       // Balanced creativity + coherence
+    max_tokens: 500,
+  },
+  comics: {
+    model: 'mixtral-8x7b-32768',           // Best for punchy dialogue
+    temperature: 0.85,                      // Creative but focused
+    max_tokens: 300,
+  },
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -34,7 +53,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const apiKey = process.env.GROQ_API_KEY
 
     if (!apiKey) {
-      return res.status(500).json({ error: 'API configuration error' })
+      return res.status(500).json({ error: 'API key not configured' })
     }
 
     if (!imageBase64 || !mimeType) {
@@ -51,6 +70,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       prompt = customPrompt || 'Generate appropriate content for this image.'
     }
 
+    // Get optimized model config for this mode
+    const config = MODEL_CONFIG[mode] || MODEL_CONFIG.story
+
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -58,7 +80,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+        model: config.model,
         messages: [
           {
             role: 'user',
@@ -68,33 +90,45 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             ],
           },
         ],
-        temperature: 0.95,
-        max_tokens: 350,
+        temperature: config.temperature,
+        max_tokens: config.max_tokens,
         response_format: { type: 'json_object' },
       }),
     })
 
     if (!response.ok) {
       const error = await response.text()
-      return res.status(response.status).json({ error })
+      console.error(`Groq API Error (${config.model}):`, error)
+      return res.status(response.status).json({ 
+        error: `Generation failed: ${response.statusText}`,
+        details: error 
+      })
     }
 
     const data = await response.json()
     const content = data.choices?.[0]?.message?.content
 
+    if (!content) {
+      return res.status(500).json({ error: 'No content generated' })
+    }
+
     try {
       const parsed = JSON.parse(content)
       return res.status(200).json(parsed)
-    } catch {
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError)
       return res.status(200).json({
-        title: 'Untitled',
+        title: 'Generated Content',
         mood: 'mysterious',
         story: content,
         content: content,
       })
     }
   } catch (error) {
-    console.error('Error:', error)
-    return res.status(500).json({ error: 'Server error' })
+    console.error('Handler error:', error)
+    return res.status(500).json({ 
+      error: 'Server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    })
   }
 }

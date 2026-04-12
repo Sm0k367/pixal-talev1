@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { Sparkles, Github, Home } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
+import PaymentButton from './PaymentButton'
 
 export default function Header() {
   const location = useLocation()
@@ -31,6 +32,10 @@ export default function Header() {
               <span className="hidden sm:inline">Home</span>
             </Link>
           )}
+
+          <div className="hidden md:flex">
+            <PaymentButton variant="inline" text="Go Premium" />
+          </div>
           
           <a
             href="https://github.com/Sm0k367/pixal-tale"

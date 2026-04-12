@@ -233,6 +233,38 @@ export default function ModeSelector() {
         </div>
       </motion.div>
 
+      {/* Premium Upgrade Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.4 }}
+        className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-20 mb-12"
+      >
+        <div className="glass-card p-8 border border-accent-cyan/30 text-center space-y-6">
+          <div>
+            <h2 className="text-3xl font-bold text-white mb-2">Unlock Premium</h2>
+            <p className="text-white/60">
+              Get unlimited generations, exclusive modes, and advanced features
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-4 justify-center text-sm text-white/70">
+            <div>✨ Unlimited Stories</div>
+            <div>🎨 All Modes Unlocked</div>
+            <div>⚡ Priority Processing</div>
+            <div>📱 Mobile App Access</div>
+          </div>
+          <a
+            href="https://buy.stripe.com/aFa4gA4Ap7XU9pi5bk0Fi06"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-8 py-3 rounded-lg btn-primary font-semibold hover:shadow-lg hover:shadow-accent-cyan/50 transition-all"
+          >
+            Start Free Trial
+            <span>→</span>
+          </a>
+        </div>
+      </motion.div>
+
       {/* Footer Info */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
