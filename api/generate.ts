@@ -25,20 +25,22 @@ const MODE_PROMPTS: Record<string, (customPrompt?: string) => string> = {
 }
 
 // Best Groq models for each mode
+// IMPORTANT: Only meta-llama/llama-4-scout-17b-16e-instruct supports vision (images)
+// llama-3.3-70b-versatile does NOT support image inputs
 const MODEL_CONFIG: Record<string, { model: string; temperature: number; max_tokens: number }> = {
   story: {
-    model: 'llama-3.1-70b-versatile',      // Best for creative storytelling
-    temperature: 0.95,                      // High creativity
+    model: 'meta-llama/llama-4-scout-17b-16e-instruct',  // Vision-capable model for image analysis
+    temperature: 0.95,                                    // High creativity
     max_tokens: 400,
   },
   lifebook: {
-    model: 'llama-3.1-70b-versatile',      // Best for personal narrative
-    temperature: 0.8,                       // Balanced creativity + coherence
+    model: 'meta-llama/llama-4-scout-17b-16e-instruct',  // Vision-capable model for image analysis
+    temperature: 0.8,                                     // Balanced creativity + coherence
     max_tokens: 500,
   },
   comics: {
-    model: 'mixtral-8x7b-32768',           // Best for punchy dialogue
-    temperature: 0.85,                      // Creative but focused
+    model: 'meta-llama/llama-4-scout-17b-16e-instruct',  // Vision-capable model for dialogue generation from images
+    temperature: 0.85,                                    // Creative but focused
     max_tokens: 300,
   },
 }
@@ -52,11 +54,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { imageBase64, mimeType, mode = 'story', genre, prompt: customPrompt } = req.body
     const apiKey = process.env.GROQ_API_KEY
 
+    // Log request details for debugging
+    console.log('=== GROQ API Handler ===')
+    console.log(`Mode: ${mode}, Genre: ${genre}`)
+    console.log(`Image size: ${imageBase64?.length || 0} bytes`)
+    console.log(`MIME type: ${mimeType}`)
+    console.log(`API key configured: ${!!apiKey}`)
+
     if (!apiKey) {
+      console.error('ERROR: GROQ_API_KEY not configured in environment')
       return res.status(500).json({ error: 'API key not configured' })
     }
 
     if (!imageBase64 || !mimeType) {
+      console.error('ERROR: Missing image data in request body')
       return res.status(400).json({ error: 'Missing image data' })
     }
 
@@ -72,36 +83,45 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Get optimized model config for this mode
     const config = MODEL_CONFIG[mode] || MODEL_CONFIG.story
+    console.log(`Using model: ${config.model} (temp: ${config.temperature}, tokens: ${config.max_tokens})`)
 
+    const requestBody = {
+      model: config.model,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: prompt },
+            { type: 'image_url', image_url: { url: `data:${mimeType};base64,${imageBase64}` } },
+          ],
+        },
+      ],
+      temperature: config.temperature,
+      max_tokens: config.max_tokens,
+      response_format: { type: 'json_object' },
+    }
+
+    console.log(`Sending request to Groq API: ${config.model}`)
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model: config.model,
-        messages: [
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: prompt },
-              { type: 'image_url', image_url: { url: `data:${mimeType};base64,${imageBase64}` } },
-            ],
-          },
-        ],
-        temperature: config.temperature,
-        max_tokens: config.max_tokens,
-        response_format: { type: 'json_object' },
-      }),
+      body: JSON.stringify(requestBody),
     })
+
+    console.log(`Groq API response status: ${response.status} ${response.statusText}`)
 
     if (!response.ok) {
       const error = await response.text()
-      console.error(`Groq API Error (${config.model}):`, error)
+      console.error(`Groq API Error (${config.model}):`)
+      console.error(`Status: ${response.status}`)
+      console.error(`Response: ${error}`)
       return res.status(response.status).json({ 
         error: `Generation failed: ${response.statusText}`,
-        details: error 
+        details: error,
+        model: config.model,
       })
     }
 
@@ -109,14 +129,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const content = data.choices?.[0]?.message?.content
 
     if (!content) {
+      console.error('ERROR: No content in Groq response')
+      console.error('Full response:', JSON.stringify(data))
       return res.status(500).json({ error: 'No content generated' })
     }
 
+    console.log(`Generated content length: ${content.length} characters`)
+
     try {
       const parsed = JSON.parse(content)
+      console.log('Successfully parsed JSON response')
+      console.log(`Response keys: ${Object.keys(parsed).join(', ')}`)
       return res.status(200).json(parsed)
     } catch (parseError) {
       console.error('JSON parse error:', parseError)
+      console.error('Raw content:', content.substring(0, 200))
       return res.status(200).json({
         title: 'Generated Content',
         mood: 'mysterious',
@@ -125,7 +152,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       })
     }
   } catch (error) {
-    console.error('Handler error:', error)
+    console.error('=== Handler error ===')
+    console.error('Error type:', error instanceof Error ? error.constructor.name : typeof error)
+    console.error('Error message:', error instanceof Error ? error.message : String(error))
+    console.error('Stack:', error instanceof Error ? error.stack : 'N/A')
     return res.status(500).json({ 
       error: 'Server error',
       details: error instanceof Error ? error.message : 'Unknown error'
