@@ -48,7 +48,7 @@ const MODES: Array<{
     icon: Users,
     color: 'rose',
     gradient: 'from-rose-500 to-pink-500',
-    status: 'coming-soon',
+    status: 'available',
   },
   {
     id: 'bedtime',
@@ -57,7 +57,7 @@ const MODES: Array<{
     icon: Moon,
     color: 'indigo',
     gradient: 'from-indigo-500 to-purple-500',
-    status: 'coming-soon',
+    status: 'available',
   },
   {
     id: 'songwriter',
@@ -66,7 +66,7 @@ const MODES: Array<{
     icon: Music,
     color: 'emerald',
     gradient: 'from-emerald-500 to-teal-500',
-    status: 'coming-soon',
+    status: 'available',
   },
   {
     id: 'rpg',
@@ -75,7 +75,7 @@ const MODES: Array<{
     icon: Dice5,
     color: 'amber',
     gradient: 'from-amber-500 to-orange-500',
-    status: 'coming-soon',
+    status: 'available',
   },
   {
     id: 'memory-tapestry',
@@ -84,7 +84,7 @@ const MODES: Array<{
     icon: Map,
     color: 'teal',
     gradient: 'from-teal-500 to-cyan-500',
-    status: 'coming-soon',
+    status: 'available',
   },
   {
     id: 'time-capsule',
@@ -93,7 +93,7 @@ const MODES: Array<{
     icon: Sparkles,
     color: 'violet',
     gradient: 'from-violet-500 to-purple-500',
-    status: 'coming-soon',
+    status: 'available',
   },
   {
     id: 'therapy-journal',
@@ -102,7 +102,7 @@ const MODES: Array<{
     icon: Heart,
     color: 'red',
     gradient: 'from-red-500 to-pink-500',
-    status: 'coming-soon',
+    status: 'available',
   },
 ]
 

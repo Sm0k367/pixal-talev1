@@ -7,6 +7,13 @@ import ModeSelector from './components/ModeSelector'
 import StoryMode from './modes/StoryMode'
 import LifeBookMode from './modes/LifeBookMode'
 import ComicsMode from './modes/ComicsMode'
+import FamilyLoreMode from './modes/FamilyLoreMode'
+import BedtimeStoriesMode from './modes/BedtimeStoriesMode'
+import SongwriterMode from './modes/SongwriterMode'
+import RPGAssistantMode from './modes/RPGAssistantMode'
+import MemoryTapestryMode from './modes/MemoryTapestryMode'
+import TimeCapsuleMode from './modes/TimeCapsuleMode'
+import HealingJournalMode from './modes/HealingJournalMode'
 import History from './components/History'
 
 function ModeRouter() {
@@ -35,7 +42,13 @@ function ModeRouter() {
                 <Route path="/mode/story" element={<StoryMode />} />
                 <Route path="/mode/lifebook" element={<LifeBookMode />} />
                 <Route path="/mode/comics" element={<ComicsMode />} />
-                {/* Coming soon modes will be added here */}
+                <Route path="/mode/family-lore" element={<FamilyLoreMode />} />
+                <Route path="/mode/bedtime" element={<BedtimeStoriesMode />} />
+                <Route path="/mode/songwriter" element={<SongwriterMode />} />
+                <Route path="/mode/rpg" element={<RPGAssistantMode />} />
+                <Route path="/mode/memory-tapestry" element={<MemoryTapestryMode />} />
+                <Route path="/mode/time-capsule" element={<TimeCapsuleMode />} />
+                <Route path="/mode/therapy-journal" element={<HealingJournalMode />} />
               </Routes>
             </div>
 

@@ -22,6 +22,20 @@ const MODE_PROMPTS: Record<string, (customPrompt?: string) => string> = {
   lifebook: (customPrompt?: string) => customPrompt || `Write a personal memoir chapter of 150-200 words. Include reflection, emotion, and vivid sensory details. Return ONLY JSON: { "title": "chapter title", "mood": "one word emotion", "story": "text", "content": "text" }`,
   
   comics: (customPrompt?: string) => customPrompt || `Write witty comic book dialogue and narration for this panel (50-80 words). Keep it punchy and visual. Return ONLY JSON: { "title": "panel title", "mood": "one word tone", "story": "dialogue", "content": "narration" }`,
+  
+  'family-lore': (customPrompt?: string) => customPrompt || `You are a master genealogist and family historian. Based on this image, craft a multi-generational family saga (150-200 words). Include ancestors, their stories, and connections through time. Return ONLY JSON: { "title": "family saga title", "saga": "text", "mood": "one word" }`,
+  
+  bedtime: (customPrompt?: string) => customPrompt || `You are a beloved children's author specializing in soothing bedtime tales. Craft a gentle, imaginative story (120-150 words) perfect for young dreamers, based on this image. Use soft language and magical imagery. Return ONLY JSON: { "title": "bedtime story title", "story": "text", "mood": "peaceful", "ageGroup": "4-8 years" }`,
+  
+  songwriter: (customPrompt?: string) => customPrompt || `You are a talented songwriter and lyricist. Based on this image, compose song lyrics (150-200 words) with emotion and melody. Include verses and chorus. Identify a fitting music genre. Return ONLY JSON: { "title": "song title", "lyrics": "text", "genre": "genre name", "mood": "one word emotion" }`,
+  
+  rpg: (customPrompt?: string) => customPrompt || `You are a master Dungeon Master and world-builder. Based on this image, create a rich fantasy world description (150-200 words) with geography, culture, magic system, and adventure hooks. Return ONLY JSON: { "title": "world name", "worldBuilding": "text", "description": "short summary", "mood": "one word tone" }`,
+  
+  'memory-tapestry': (customPrompt?: string) => customPrompt || `You are a memory curator and narrative weaver. Based on this image, write a deeply personal memory reflection (100-150 words) that connects to universal human experiences. Suggest 2-3 theme tags. Return ONLY JSON: { "title": "memory title", "content": "text", "tags": ["tag1", "tag2"] }`,
+  
+  'time-capsule': (customPrompt?: string) => customPrompt || `You are a time capsule creator. Based on this image, write a message to the future (100-150 words) that captures a moment in time. Include hopes, observations, and wisdom to preserve. Return ONLY JSON: { "title": "capsule title", "content": "text" }`,
+  
+  'therapy-journal': (customPrompt?: string) => customPrompt || `You are a compassionate therapeutic journaling guide. Based on this image, prompt a healing reflection (120-150 words) that encourages emotional processing and growth. Use warm, non-judgmental language. Return ONLY JSON: { "content": "journaling prompt + reflection", "mood": "emotional tone", "title": "reflection title" }`,
 }
 
 // Best Groq models for each mode
@@ -42,6 +56,41 @@ const MODEL_CONFIG: Record<string, { model: string; temperature: number; max_tok
     model: 'meta-llama/llama-4-scout-17b-16e-instruct',  // Vision-capable model for dialogue generation from images
     temperature: 0.85,                                    // Creative but focused
     max_tokens: 300,
+  },
+  'family-lore': {
+    model: 'meta-llama/llama-4-scout-17b-16e-instruct',  // High creativity for multi-generational narratives
+    temperature: 0.88,
+    max_tokens: 500,
+  },
+  bedtime: {
+    model: 'meta-llama/llama-4-scout-17b-16e-instruct',  // Gentle, soothing narratives
+    temperature: 0.75,
+    max_tokens: 400,
+  },
+  songwriter: {
+    model: 'meta-llama/llama-4-scout-17b-16e-instruct',  // Lyrical creativity
+    temperature: 0.9,
+    max_tokens: 500,
+  },
+  rpg: {
+    model: 'meta-llama/llama-4-scout-17b-16e-instruct',  // Detailed world-building
+    temperature: 0.85,
+    max_tokens: 500,
+  },
+  'memory-tapestry': {
+    model: 'meta-llama/llama-4-scout-17b-16e-instruct',  // Emotional, introspective
+    temperature: 0.8,
+    max_tokens: 350,
+  },
+  'time-capsule': {
+    model: 'meta-llama/llama-4-scout-17b-16e-instruct',  // Reflective, timeless
+    temperature: 0.82,
+    max_tokens: 350,
+  },
+  'therapy-journal': {
+    model: 'meta-llama/llama-4-scout-17b-16e-instruct',  // Therapeutic, compassionate
+    temperature: 0.78,
+    max_tokens: 400,
   },
 }
 
