@@ -1,14 +1,21 @@
 import { VercelRequest, VercelResponse } from '@vercel/node'
 
 const GENRE_PROMPTS: Record<string, string> = {
-  cinematic: `You are a master storyteller. Analyze this image and create a brief, vivid opening (100 words) for a cinematic story. Return JSON: { "title": "4 word title", "mood": "one word", "story": "opening" }`,
-  fantasy: `Create a brief epic fantasy opening (100 words) for this image. Return JSON: { "title": "4 word title", "mood": "one word", "story": "opening" }`,
-  mystery: `Create a brief mysterious story opening (100 words) for this image. Return JSON: { "title": "4 word title", "mood": "one word", "story": "opening" }`,
-  romance: `Create a brief romantic story opening (100 words) for this image. Return JSON: { "title": "4 word title", "mood": "one word", "story": "opening" }`,
-  horror: `Create a brief horror story opening (100 words) for this image. Return JSON: { "title": "4 word title", "mood": "one word", "story": "opening" }`,
-  adventure: `Create a brief adventure story opening (100 words) for this image. Return JSON: { "title": "4 word title", "mood": "one word", "story": "opening" }`,
-  'bedtime story': `Create a brief magical bedtime story (80 words) for this image. Return JSON: { "title": "4 word title", "mood": "one word", "story": "opening" }`,
-  travelogue: `Create a brief travel story (100 words) for this image. Return JSON: { "title": "4 word title", "mood": "one word", "story": "opening" }`,
+  cinematic: `You are an acclaimed screenwriter and visual storyteller. Analyze this image and craft a vivid, cinematic opening (120-150 words) that could open an Oscar-nominated film. Focus on lighting, mood, and atmosphere. Return ONLY JSON: { "title": "a 3-5 word evocative title", "mood": "one word", "story": "text" }`,
+  
+  fantasy: `You are a legendary fantasy author who has written epic sagas. This image is the threshold to an ancient world. Write a mystical, otherworldly opening (120-150 words) filled with magic and wonder. Return ONLY JSON: { "title": "a 3-5 word epic title", "mood": "one word", "story": "text" }`,
+  
+  mystery: `You are a master of psychological thrillers and noir mysteries. This image holds a secret. Write a gripping, tension-filled opening (120-150 words) that makes readers desperate to uncover the truth. Return ONLY JSON: { "title": "a 3-5 word mysterious title", "mood": "one word", "story": "text" }`,
+  
+  romance: `You are a bestselling romance author known for sweeping, emotional narratives. This image captures a moment of connection. Write a passionate, heart-stirring opening (120-150 words). Return ONLY JSON: { "title": "a 3-5 word romantic title", "mood": "one word", "story": "text" }`,
+  
+  horror: `You are a master of psychological horror and gothic literature. This image contains something unsettling. Write a chilling, atmospheric opening (120-150 words) that fills readers with dread. Return ONLY JSON: { "title": "a 3-5 word terrifying title", "mood": "one word", "story": "text" }`,
+  
+  adventure: `You are an adventure novelist who writes breathtaking tales of discovery. This image marks the beginning of an epic journey. Write an exhilarating opening (120-150 words) filled with danger and wonder. Return ONLY JSON: { "title": "a 3-5 word adventure title", "mood": "one word", "story": "text" }`,
+  
+  bedtime: `You are a beloved children's author creating magical bedtime tales. This image is from a gentle, enchanting dream. Write a soothing, imaginative opening (100-130 words) perfect for dreamers. Return ONLY JSON: { "title": "a 3-5 word whimsical title", "mood": "one word", "story": "text" }`,
+  
+  scifi: `You are a visionary sci-fi author exploring the future. This image is from a world beyond our reality. Write a mind-bending, futuristic opening (120-150 words) that challenges perception. Return ONLY JSON: { "title": "a 3-5 word futuristic title", "mood": "one word", "story": "text" }`,
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -21,14 +28,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const apiKey = process.env.GROQ_API_KEY
 
     if (!apiKey) {
-      return res.status(500).json({ error: 'API key not configured' })
+      return res.status(500).json({ error: 'API configuration error' })
     }
 
     if (!imageBase64 || !mimeType) {
       return res.status(400).json({ error: 'Missing image data' })
     }
 
-    const prompt = GENRE_PROMPTS[genre] || GENRE_PROMPTS['cinematic']
+    const prompt = GENRE_PROMPTS[genre] || GENRE_PROMPTS.cinematic
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -47,8 +54,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             ],
           },
         ],
-        temperature: 0.9,
-        max_tokens: 300,
+        temperature: 0.95,
+        max_tokens: 350,
         response_format: { type: 'json_object' },
       }),
     })
@@ -66,7 +73,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json(parsed)
     } catch {
       return res.status(200).json({
-        title: 'Story',
+        title: 'Untitled Story',
         mood: 'mysterious',
         story: content,
       })

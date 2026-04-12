@@ -1,210 +1,88 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply transition-colors duration-300;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-dark-950 text-white antialiased;
+    background-image: radial-gradient(circle at 20% 50%, rgba(157, 78, 221, 0.05) 0%, transparent 50%),
+                      radial-gradient(circle at 80% 80%, rgba(0, 217, 255, 0.05) 0%, transparent 50%);
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 217, 255, 0.3);
+    border-radius: 4px;
+
+    &:hover {
+      background: rgba(0, 217, 255, 0.5);
+    }
+  }
 }
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  color: #eee;
-  min-height: 100vh;
+@layer components {
+  .glass-effect {
+    @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl;
+  }
+
+  .gradient-border {
+    @apply relative;
+    background: linear-gradient(135deg, rgba(0, 217, 255, 0.5), rgba(157, 78, 221, 0.5));
+    padding: 1px;
+    border-radius: 1rem;
+
+    > * {
+      @apply bg-dark-850 rounded-[calc(1rem-1px)];
+    }
+  }
+
+  .btn-primary {
+    @apply px-8 py-3 rounded-lg font-semibold bg-gradient-to-r from-accent-cyan to-accent-purple text-dark-950 hover:shadow-lg hover:shadow-accent-cyan/50 transition-all duration-300 hover:scale-105 active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-2 rounded-lg font-medium border border-white/20 text-white hover:bg-white/5 transition-all;
+  }
+
+  .btn-icon {
+    @apply p-3 rounded-lg bg-white/5 border border-white/10 text-accent-cyan hover:bg-white/10 hover:border-accent-cyan/50 transition-all;
+  }
+
+  .text-glow {
+    text-shadow: 0 0 20px rgba(0, 217, 255, 0.5);
+  }
+
+  .card-hover {
+    @apply hover:border-accent-cyan/50 hover:bg-white/10 hover:shadow-lg hover:shadow-accent-cyan/20;
+  }
+
+  .input-field {
+    @apply bg-dark-800/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:border-accent-cyan/50 focus:outline-none focus:ring-2 focus:ring-accent-cyan/20;
+  }
 }
 
-.container {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 2rem;
+/* Smooth gradient animations */
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
-.header {
-  text-align: center;
-  margin-bottom: 3rem;
-}
-
-.header h1 {
-  font-size: 3rem;
-  margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, #ffd700, #ffed4e);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.header p {
-  color: #aaa;
-  font-size: 1.1rem;
-}
-
-.card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 215, 0, 0.2);
-  border-radius: 12px;
-  padding: 2rem;
-  margin-bottom: 2rem;
-  backdrop-filter: blur(10px);
-}
-
-.upload-area {
-  border: 2px dashed #ffd700;
-  border-radius: 8px;
-  padding: 3rem;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s;
-  margin-bottom: 1.5rem;
-}
-
-.upload-area:hover {
-  background: rgba(255, 215, 0, 0.05);
-  border-color: #ffed4e;
-}
-
-.upload-area.dragging {
-  background: rgba(255, 215, 0, 0.1);
-  border-color: #ffed4e;
-}
-
-.upload-area input {
-  display: none;
-}
-
-.genres {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 0.8rem;
-  margin-bottom: 1.5rem;
-}
-
-.genre-btn {
-  padding: 0.8rem;
-  background: rgba(255, 215, 0, 0.1);
-  border: 1px solid #ffd700;
-  border-radius: 6px;
-  color: #ffd700;
-  cursor: pointer;
-  transition: all 0.3s;
-  font-size: 0.9rem;
-}
-
-.genre-btn:hover {
-  background: rgba(255, 215, 0, 0.2);
-}
-
-.genre-btn.active {
-  background: #ffd700;
-  color: #1a1a2e;
-  font-weight: bold;
-}
-
-.button {
-  background: linear-gradient(135deg, #ffd700, #ffed4e);
-  color: #1a1a2e;
-  border: none;
-  padding: 1rem 2rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: bold;
-  transition: all 0.3s;
-  width: 100%;
-  margin-bottom: 1rem;
-}
-
-.button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(255, 215, 0, 0.3);
-}
-
-.button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.story-display {
-  background: rgba(0, 0, 0, 0.3);
-  border-left: 4px solid #ffd700;
-  padding: 1.5rem;
-  border-radius: 6px;
-  margin-bottom: 1rem;
-}
-
-.story-title {
-  font-size: 1.5rem;
-  color: #ffd700;
-  margin-bottom: 0.5rem;
-}
-
-.story-mood {
-  color: #aaa;
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
-}
-
-.story-text {
-  font-size: 1.1rem;
-  line-height: 1.6;
-  color: #eee;
-}
-
-.narrate-controls {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-.icon-btn {
-  background: rgba(255, 215, 0, 0.2);
-  border: 1px solid #ffd700;
-  color: #ffd700;
-  padding: 0.8rem;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
-}
-
-.icon-btn:hover {
-  background: rgba(255, 215, 0, 0.3);
-}
-
-.loading {
-  text-align: center;
-  color: #ffd700;
-  font-size: 1.1rem;
-}
-
-.spinner {
-  border: 3px solid rgba(255, 215, 0, 0.2);
-  border-top: 3px solid #ffd700;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  animation: spin 0.8s linear infinite;
-  margin: 1rem auto;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.error {
-  background: rgba(255, 0, 0, 0.1);
-  border: 1px solid #ff6b6b;
-  color: #ff6b6b;
-  padding: 1rem;
-  border-radius: 6px;
-  margin-bottom: 1rem;
-}
-
-.preview-image {
-  max-width: 100%;
-  height: auto;
-  border-radius: 6px;
-  margin-bottom: 1rem;
-  max-height: 300px;
+.gradient-animate {
+  background-size: 400% 400%;
+  animation: gradient-shift 8s ease infinite;
 }
