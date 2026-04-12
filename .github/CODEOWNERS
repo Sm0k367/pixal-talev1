@@ -1,0 +1,23 @@
+# PixelTale CODEOWNERS
+# This file lists the maintainers for different parts of the project
+
+* @Sm0k367
+
+# Documentation
+*.md @Sm0k367
+
+# Workflows
+.github/workflows/ @Sm0k367
+
+# Dependencies
+package.json @Sm0k367
+package-lock.json @Sm0k367
+
+# Configuration
+tsconfig.json @Sm0k367
+vite.config.ts @Sm0k367
+tailwind.config.js @Sm0k367
+
+# Source code
+src/ @Sm0k367
+api/ @Sm0k367
