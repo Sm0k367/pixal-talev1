@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
 
 // ============ Story Mode ============
 export interface Story {
@@ -70,6 +71,7 @@ export interface BedtimeStory {
   title: string
   story: string
   ageGroup: string
+  mood: string
   imageUrl: string
   createdAt: number
 }
@@ -91,6 +93,11 @@ export interface RPGWorld {
   title: string
   description: string
   worldBuilding: string
+  geography?: string
+  culture?: string
+  magicSystem?: string
+  adventureHooks?: string[]
+  mood: string
   imageUrl: string
   createdAt: number
 }
@@ -120,6 +127,7 @@ export interface TimeCapsule {
   imageUrl: string
   targetDate: string
   location?: string
+  message?: string
   createdAt: number
 }
 
@@ -129,6 +137,7 @@ export interface JournalEntry {
   date: string
   content: string
   mood: string
+  title?: string
   imageUrl?: string
   createdAt: number
 }
@@ -144,11 +153,9 @@ export interface HealingJournal {
 export type Mode = 'story' | 'lifebook' | 'comics' | 'family-lore' | 'bedtime' | 'songwriter' | 'rpg' | 'memory-tapestry' | 'time-capsule' | 'therapy-journal'
 
 interface UIState {
-  // Current Mode
   currentMode: Mode
   setCurrentMode: (mode: Mode) => void
-  
-  // Story Mode
+
   selectedGenre: string
   selectedVoice: string
   setSelectedGenre: (genre: string) => void
@@ -157,72 +164,73 @@ interface UIState {
   setCurrentStory: (story: Story | null) => void
   storyHistory: Story[]
   addStoryToHistory: (story: Story) => void
-  
-  // LifeBook Mode
+
   lifeBooks: LifeBook[]
   currentLifeBook: LifeBook | null
   setCurrentLifeBook: (book: LifeBook | null) => void
   addLifeBook: (book: LifeBook) => void
   updateLifeBook: (id: string, updates: Partial<LifeBook>) => void
-  
-  // Comics Mode
+  deleteLifeBook: (id: string) => void
+  deleteChapter: (bookId: string, chapterId: string) => void
+  updateChapter: (bookId: string, chapterId: string, updates: Partial<LifeBookChapter>) => void
+
   comicsSequences: ComicsSequence[]
   currentComicsSequence: ComicsSequence | null
   setCurrentComicsSequence: (seq: ComicsSequence | null) => void
   addComicsSequence: (seq: ComicsSequence) => void
   updateComicsSequence: (id: string, updates: Partial<ComicsSequence>) => void
-  
-  // Family Lore Mode
+
   familyLores: FamilyLore[]
   currentFamilyLore: FamilyLore | null
   setCurrentFamilyLore: (lore: FamilyLore | null) => void
   addFamilyLore: (lore: FamilyLore) => void
   updateFamilyLore: (id: string, updates: Partial<FamilyLore>) => void
-  
-  // Bedtime Stories Mode
+
   bedtimeStories: BedtimeStory[]
   addBedtimeStory: (story: BedtimeStory) => void
-  
-  // Songwriter Mode
+  deleteBedtimeStory: (id: string) => void
+
   songs: Song[]
   addSong: (song: Song) => void
-  
-  // RPG Assistant Mode
+  updateSong: (id: string, updates: Partial<Song>) => void
+  deleteSong: (id: string) => void
+
   rpgWorlds: RPGWorld[]
   addRPGWorld: (world: RPGWorld) => void
-  
-  // Memory Tapestry Mode
+  updateRPGWorld: (id: string, updates: Partial<RPGWorld>) => void
+  deleteRPGWorld: (id: string) => void
+
   memoryTapestries: MemoryTapestry[]
   currentMemoryTapestry: MemoryTapestry | null
   setCurrentMemoryTapestry: (tapestry: MemoryTapestry | null) => void
   addMemoryTapestry: (tapestry: MemoryTapestry) => void
   addMemoryToTapestry: (tapestryId: string, memory: Memory) => void
-  
-  // Time Capsule Mode
+  updateMemoryInTapestry: (tapestryId: string, memory: Memory) => void
+  deleteMemoryFromTapestry: (tapestryId: string, memoryId: string) => void
+
   timeCapsules: TimeCapsule[]
   addTimeCapsule: (capsule: TimeCapsule) => void
-  
-  // Healing Journal Mode
+  deleteTimeCapsule: (id: string) => void
+
   healingJournals: HealingJournal[]
   currentHealingJournal: HealingJournal | null
   setCurrentHealingJournal: (journal: HealingJournal | null) => void
   addHealingJournal: (journal: HealingJournal) => void
+  deleteHealingJournal: (id: string) => void
   addJournalEntry: (journalId: string, entry: JournalEntry) => void
-  
-  // Global Loading State
+  updateJournalEntry: (journalId: string, entryId: string, updates: Partial<JournalEntry>) => void
+  deleteJournalEntry: (journalId: string, entryId: string) => void
+
   isLoading: boolean
   setIsLoading: (loading: boolean) => void
-  
-  // Clear All Data
+
   clearAllData: () => void
 }
 
-export const useStore = create<UIState>((set) => ({
-  // Current Mode
+export const useStore = create<UIState>()(persist((set) => ({
   currentMode: 'story',
   setCurrentMode: (mode) => set({ currentMode: mode }),
-  
-  // Story Mode
+
   selectedGenre: 'cinematic',
   selectedVoice: 'nova',
   setSelectedGenre: (genre) => set({ selectedGenre: genre }),
@@ -230,139 +238,261 @@ export const useStore = create<UIState>((set) => ({
   currentStory: null,
   setCurrentStory: (story) => set({ currentStory: story }),
   storyHistory: [],
-  addStoryToHistory: (story) => set((state) => ({
-    storyHistory: [story, ...state.storyHistory].slice(0, 50),
-  })),
-  
-  // LifeBook Mode
+  addStoryToHistory: (story) =>
+    set((state) => ({ storyHistory: [story, ...state.storyHistory].slice(0, 50) })),
+
   lifeBooks: [],
   currentLifeBook: null,
   setCurrentLifeBook: (book) => set({ currentLifeBook: book }),
-  addLifeBook: (book) => set((state) => ({
-    lifeBooks: [book, ...state.lifeBooks],
-  })),
-  updateLifeBook: (id, updates) => set((state) => ({
-    lifeBooks: state.lifeBooks.map(book => 
-      book.id === id ? { ...book, ...updates, updatedAt: Date.now() } : book
-    ),
-    currentLifeBook: state.currentLifeBook?.id === id 
-      ? { ...state.currentLifeBook, ...updates, updatedAt: Date.now() } 
-      : state.currentLifeBook,
-  })),
-  
-  // Comics Mode
+  addLifeBook: (book) => set((state) => ({ lifeBooks: [book, ...state.lifeBooks] })),
+  updateLifeBook: (id, updates) =>
+    set((state) => ({
+      lifeBooks: state.lifeBooks.map((b) =>
+        b.id === id ? { ...b, ...updates, updatedAt: Date.now() } : b
+      ),
+      currentLifeBook:
+        state.currentLifeBook?.id === id
+          ? { ...state.currentLifeBook, ...updates, updatedAt: Date.now() }
+          : state.currentLifeBook,
+    })),
+  deleteLifeBook: (id) =>
+    set((state) => ({
+      lifeBooks: state.lifeBooks.filter((b) => b.id !== id),
+      currentLifeBook: state.currentLifeBook?.id === id ? null : state.currentLifeBook,
+    })),
+  deleteChapter: (bookId, chapterId) =>
+    set((state) => {
+      const mapBook = (b: LifeBook) =>
+        b.id === bookId
+          ? { ...b, chapters: b.chapters.filter((c) => c.id !== chapterId), updatedAt: Date.now() }
+          : b
+      return {
+        lifeBooks: state.lifeBooks.map(mapBook),
+        currentLifeBook: state.currentLifeBook ? mapBook(state.currentLifeBook) : null,
+      }
+    }),
+  updateChapter: (bookId, chapterId, updates) =>
+    set((state) => {
+      const mapBook = (b: LifeBook) =>
+        b.id === bookId
+          ? {
+              ...b,
+              chapters: b.chapters.map((c) => (c.id === chapterId ? { ...c, ...updates } : c)),
+              updatedAt: Date.now(),
+            }
+          : b
+      return {
+        lifeBooks: state.lifeBooks.map(mapBook),
+        currentLifeBook: state.currentLifeBook ? mapBook(state.currentLifeBook) : null,
+      }
+    }),
+
   comicsSequences: [],
   currentComicsSequence: null,
   setCurrentComicsSequence: (seq) => set({ currentComicsSequence: seq }),
-  addComicsSequence: (seq) => set((state) => ({
-    comicsSequences: [seq, ...state.comicsSequences],
-  })),
-  updateComicsSequence: (id, updates) => set((state) => ({
-    comicsSequences: state.comicsSequences.map(seq => 
-      seq.id === id ? { ...seq, ...updates } : seq
-    ),
-    currentComicsSequence: state.currentComicsSequence?.id === id 
-      ? { ...state.currentComicsSequence, ...updates } 
-      : state.currentComicsSequence,
-  })),
-  
-  // Family Lore Mode
+  addComicsSequence: (seq) => set((state) => ({ comicsSequences: [seq, ...state.comicsSequences] })),
+  updateComicsSequence: (id, updates) =>
+    set((state) => ({
+      comicsSequences: state.comicsSequences.map((s) => (s.id === id ? { ...s, ...updates } : s)),
+      currentComicsSequence:
+        state.currentComicsSequence?.id === id
+          ? { ...state.currentComicsSequence, ...updates }
+          : state.currentComicsSequence,
+    })),
+
   familyLores: [],
   currentFamilyLore: null,
   setCurrentFamilyLore: (lore) => set({ currentFamilyLore: lore }),
-  addFamilyLore: (lore) => set((state) => ({
-    familyLores: [lore, ...state.familyLores],
-  })),
-  updateFamilyLore: (id, updates) => set((state) => ({
-    familyLores: state.familyLores.map(lore => 
-      lore.id === id ? { ...lore, ...updates } : lore
-    ),
-    currentFamilyLore: state.currentFamilyLore?.id === id 
-      ? { ...state.currentFamilyLore, ...updates } 
-      : state.currentFamilyLore,
-  })),
-  
-  // Bedtime Stories Mode
+  addFamilyLore: (lore) => set((state) => ({ familyLores: [lore, ...state.familyLores] })),
+  updateFamilyLore: (id, updates) =>
+    set((state) => ({
+      familyLores: state.familyLores.map((l) => (l.id === id ? { ...l, ...updates } : l)),
+      currentFamilyLore:
+        state.currentFamilyLore?.id === id
+          ? { ...state.currentFamilyLore, ...updates }
+          : state.currentFamilyLore,
+    })),
+
   bedtimeStories: [],
-  addBedtimeStory: (story) => set((state) => ({
-    bedtimeStories: [story, ...state.bedtimeStories].slice(0, 50),
-  })),
-  
-  // Songwriter Mode
+  addBedtimeStory: (story) =>
+    set((state) => ({ bedtimeStories: [story, ...state.bedtimeStories].slice(0, 50) })),
+  deleteBedtimeStory: (id) =>
+    set((state) => ({ bedtimeStories: state.bedtimeStories.filter((s) => s.id !== id) })),
+
   songs: [],
-  addSong: (song) => set((state) => ({
-    songs: [song, ...state.songs].slice(0, 50),
+  addSong: (song) => set((state) => ({ songs: [song, ...state.songs].slice(0, 50) })),
+  updateSong: (id, updates) => set((state) => ({
+    songs: state.songs.map(s => s.id === id ? { ...s, ...updates } : s),
   })),
-  
-  // RPG Assistant Mode
+  deleteSong: (id) => set((state) => ({
+    songs: state.songs.filter(s => s.id !== id),
+  })),
+
   rpgWorlds: [],
-  addRPGWorld: (world) => set((state) => ({
-    rpgWorlds: [world, ...state.rpgWorlds].slice(0, 50),
-  })),
-  
-  // Memory Tapestry Mode
+  addRPGWorld: (world) => set((state) => ({ rpgWorlds: [world, ...state.rpgWorlds].slice(0, 50) })),
+  updateRPGWorld: (id, updates) =>
+    set((state) => ({ rpgWorlds: state.rpgWorlds.map((w) => (w.id === id ? { ...w, ...updates } : w)) })),
+  deleteRPGWorld: (id) =>
+    set((state) => ({ rpgWorlds: state.rpgWorlds.filter((w) => w.id !== id) })),
+
   memoryTapestries: [],
   currentMemoryTapestry: null,
   setCurrentMemoryTapestry: (tapestry) => set({ currentMemoryTapestry: tapestry }),
-  addMemoryTapestry: (tapestry) => set((state) => ({
-    memoryTapestries: [tapestry, ...state.memoryTapestries],
-  })),
-  addMemoryToTapestry: (tapestryId, memory) => set((state) => ({
-    memoryTapestries: state.memoryTapestries.map(t =>
-      t.id === tapestryId ? { ...t, memories: [memory, ...t.memories] } : t
-    ),
-    currentMemoryTapestry: state.currentMemoryTapestry?.id === tapestryId
-      ? { ...state.currentMemoryTapestry, memories: [memory, ...state.currentMemoryTapestry.memories] }
-      : state.currentMemoryTapestry,
-  })),
-  
-  // Time Capsule Mode
+  addMemoryTapestry: (tapestry) =>
+    set((state) => ({ memoryTapestries: [tapestry, ...state.memoryTapestries] })),
+  addMemoryToTapestry: (tapestryId, memory) =>
+    set((state) => ({
+      memoryTapestries: state.memoryTapestries.map((t) =>
+        t.id === tapestryId ? { ...t, memories: [memory, ...t.memories] } : t
+      ),
+      currentMemoryTapestry:
+        state.currentMemoryTapestry?.id === tapestryId
+          ? { ...state.currentMemoryTapestry, memories: [memory, ...state.currentMemoryTapestry.memories] }
+          : state.currentMemoryTapestry,
+    })),
+  updateMemoryInTapestry: (tapestryId, memory) =>
+    set((state) => ({
+      memoryTapestries: state.memoryTapestries.map((t) =>
+        t.id === tapestryId
+          ? {
+              ...t,
+              memories: t.memories.map((m) => (m.id === memory.id ? memory : m)),
+            }
+          : t
+      ),
+      currentMemoryTapestry:
+        state.currentMemoryTapestry?.id === tapestryId
+          ? {
+              ...state.currentMemoryTapestry,
+              memories: state.currentMemoryTapestry.memories.map((m) => (m.id === memory.id ? memory : m)),
+            }
+          : state.currentMemoryTapestry,
+    })),
+  deleteMemoryFromTapestry: (tapestryId, memoryId) =>
+    set((state) => ({
+      memoryTapestries: state.memoryTapestries.map((t) =>
+        t.id === tapestryId
+          ? {
+              ...t,
+              memories: t.memories.filter((m) => m.id !== memoryId),
+            }
+          : t
+      ),
+      currentMemoryTapestry:
+        state.currentMemoryTapestry?.id === tapestryId
+          ? {
+              ...state.currentMemoryTapestry,
+              memories: state.currentMemoryTapestry.memories.filter((m) => m.id !== memoryId),
+            }
+          : state.currentMemoryTapestry,
+    })),
+
   timeCapsules: [],
-  addTimeCapsule: (capsule) => set((state) => ({
-    timeCapsules: [capsule, ...state.timeCapsules].slice(0, 50),
-  })),
-  
-  // Healing Journal Mode
+  addTimeCapsule: (capsule) =>
+    set((state) => ({ timeCapsules: [capsule, ...state.timeCapsules].slice(0, 50) })),
+  deleteTimeCapsule: (id) =>
+    set((state) => ({ timeCapsules: state.timeCapsules.filter((c) => c.id !== id) })),
+
   healingJournals: [],
   currentHealingJournal: null,
   setCurrentHealingJournal: (journal) => set({ currentHealingJournal: journal }),
-  addHealingJournal: (journal) => set((state) => ({
-    healingJournals: [journal, ...state.healingJournals],
-  })),
-  addJournalEntry: (journalId, entry) => set((state) => ({
-    healingJournals: state.healingJournals.map(j =>
-      j.id === journalId ? { ...j, entries: [entry, ...j.entries] } : j
-    ),
-    currentHealingJournal: state.currentHealingJournal?.id === journalId
-      ? { ...state.currentHealingJournal, entries: [entry, ...state.currentHealingJournal.entries] }
-      : state.currentHealingJournal,
-  })),
-  
-  // Global Loading
+  addHealingJournal: (journal) =>
+    set((state) => ({ healingJournals: [journal, ...state.healingJournals] })),
+  deleteHealingJournal: (id) =>
+    set((state) => ({ 
+      healingJournals: state.healingJournals.filter((j) => j.id !== id),
+      currentHealingJournal: state.currentHealingJournal?.id === id ? null : state.currentHealingJournal,
+    })),
+  addJournalEntry: (journalId, entry) =>
+    set((state) => ({
+      healingJournals: state.healingJournals.map((j) =>
+        j.id === journalId ? { ...j, entries: [entry, ...j.entries] } : j
+      ),
+      currentHealingJournal:
+        state.currentHealingJournal?.id === journalId
+          ? { ...state.currentHealingJournal, entries: [entry, ...state.currentHealingJournal.entries] }
+          : state.currentHealingJournal,
+    })),
+  updateJournalEntry: (journalId, entryId, updates) =>
+    set((state) => ({
+      healingJournals: state.healingJournals.map((j) =>
+        j.id === journalId
+          ? {
+              ...j,
+              entries: j.entries.map((e) => (e.id === entryId ? { ...e, ...updates } : e)),
+            }
+          : j
+      ),
+      currentHealingJournal:
+        state.currentHealingJournal?.id === journalId
+          ? {
+              ...state.currentHealingJournal,
+              entries: state.currentHealingJournal.entries.map((e) => (e.id === entryId ? { ...e, ...updates } : e)),
+            }
+          : state.currentHealingJournal,
+    })),
+  deleteJournalEntry: (journalId, entryId) =>
+    set((state) => ({
+      healingJournals: state.healingJournals.map((j) =>
+        j.id === journalId
+          ? {
+              ...j,
+              entries: j.entries.filter((e) => e.id !== entryId),
+            }
+          : j
+      ),
+      currentHealingJournal:
+        state.currentHealingJournal?.id === journalId
+          ? {
+              ...state.currentHealingJournal,
+              entries: state.currentHealingJournal.entries.filter((e) => e.id !== entryId),
+            }
+          : state.currentHealingJournal,
+    })),
+
   isLoading: false,
   setIsLoading: (loading) => set({ isLoading: loading }),
-  
-  // Clear All
-  clearAllData: () => set({
-    currentMode: 'story',
-    selectedGenre: 'cinematic',
-    selectedVoice: 'nova',
-    currentStory: null,
-    storyHistory: [],
-    lifeBooks: [],
-    currentLifeBook: null,
-    comicsSequences: [],
-    currentComicsSequence: null,
-    familyLores: [],
-    currentFamilyLore: null,
-    bedtimeStories: [],
-    songs: [],
-    rpgWorlds: [],
-    memoryTapestries: [],
-    currentMemoryTapestry: null,
-    timeCapsules: [],
-    healingJournals: [],
-    currentHealingJournal: null,
-    isLoading: false,
+
+  clearAllData: () =>
+    set({
+      currentMode: 'story',
+      selectedGenre: 'cinematic',
+      selectedVoice: 'nova',
+      currentStory: null,
+      storyHistory: [],
+      lifeBooks: [],
+      currentLifeBook: null,
+      comicsSequences: [],
+      currentComicsSequence: null,
+      familyLores: [],
+      currentFamilyLore: null,
+      bedtimeStories: [],
+      songs: [],
+      rpgWorlds: [],
+      memoryTapestries: [],
+      currentMemoryTapestry: null,
+      timeCapsules: [],
+      healingJournals: [],
+      currentHealingJournal: null,
+      isLoading: false,
+    }),
+}),
+{
+  name: 'pixeltale-store',
+  storage: createJSONStorage(() => localStorage),
+  // Don't persist loading state or current* pointers that reference large data
+  partialize: (state) => ({
+    comicsSequences: state.comicsSequences,
+    storyHistory: state.storyHistory,
+    lifeBooks: state.lifeBooks,
+    familyLores: state.familyLores,
+    bedtimeStories: state.bedtimeStories,
+    songs: state.songs,
+    rpgWorlds: state.rpgWorlds,
+    memoryTapestries: state.memoryTapestries,
+    timeCapsules: state.timeCapsules,
+    healingJournals: state.healingJournals,
+    selectedGenre: state.selectedGenre,
+    selectedVoice: state.selectedVoice,
   }),
 }))

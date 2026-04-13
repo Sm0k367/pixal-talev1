@@ -25,11 +25,11 @@ const MODE_PROMPTS: Record<string, (customPrompt?: string) => string> = {
   
   'family-lore': (customPrompt?: string) => customPrompt || `You are a master genealogist and family historian. Based on this image, craft a multi-generational family saga (150-200 words). Include ancestors, their stories, and connections through time. Return ONLY JSON: { "title": "family saga title", "saga": "text", "mood": "one word" }`,
   
-  bedtime: (customPrompt?: string) => customPrompt || `You are a beloved children's author specializing in soothing bedtime tales. Craft a gentle, imaginative story (120-150 words) perfect for young dreamers, based on this image. Use soft language and magical imagery. Return ONLY JSON: { "title": "bedtime story title", "story": "text", "mood": "peaceful", "ageGroup": "4-8 years" }`,
+  bedtime: (customPrompt?: string) => customPrompt || `You are a beloved children's author specializing in soothing bedtime tales. Craft a gentle, imaginative story (120-150 words) perfect for young dreamers, based on this image. Use soft language and magical imagery. Return ONLY JSON: { "title": "bedtime story title", "story": "text", "mood": "soothing", "ageGroup": "4-6 years" }`,
   
   songwriter: (customPrompt?: string) => customPrompt || `You are a talented songwriter and lyricist. Based on this image, compose song lyrics (150-200 words) with emotion and melody. Include verses and chorus. Identify a fitting music genre. Return ONLY JSON: { "title": "song title", "lyrics": "text", "genre": "genre name", "mood": "one word emotion" }`,
   
-  rpg: (customPrompt?: string) => customPrompt || `You are a master Dungeon Master and world-builder. Based on this image, create a rich fantasy world description (150-200 words) with geography, culture, magic system, and adventure hooks. Return ONLY JSON: { "title": "world name", "worldBuilding": "text", "description": "short summary", "mood": "one word tone" }`,
+  rpg: (customPrompt?: string) => customPrompt || `You are a master Dungeon Master and world-builder for a D&D campaign. Based on this image, create a rich fantasy world. Return ONLY JSON with these exact keys: { "title": "world name (2-4 words)", "description": "one-sentence evocative summary", "mood": "one word atmospheric tone", "worldBuilding": "2-3 sentence overview of the world", "geography": "2-3 sentences describing terrain, climate, notable landmarks", "culture": "2-3 sentences describing peoples, customs, factions, politics", "magicSystem": "2-3 sentences describing how magic works, its costs, schools of magic", "adventureHooks": ["hook 1 (one actionable sentence)", "hook 2 (one actionable sentence)", "hook 3 (one actionable sentence)"] }`,
   
   'memory-tapestry': (customPrompt?: string) => customPrompt || `You are a memory curator and narrative weaver. Based on this image, write a deeply personal memory reflection (100-150 words) that connects to universal human experiences. Suggest 2-3 theme tags. Return ONLY JSON: { "title": "memory title", "content": "text", "tags": ["tag1", "tag2"] }`,
   
@@ -100,7 +100,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { imageBase64, mimeType, mode = 'story', genre, prompt: customPrompt } = req.body
+    const { imageBase64, mimeType, mode = 'story', genre, prompt: customPrompt, ageGroup } = req.body
     const apiKey = process.env.GROQ_API_KEY
 
     // Log request details for debugging
@@ -126,7 +126,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       prompt = GENRE_PROMPTS[genre] || GENRE_PROMPTS.cinematic
     } else if (MODE_PROMPTS[mode]) {
       // Handle all mode-specific prompts (lifebook, comics, family-lore, bedtime, songwriter, rpg, memory-tapestry, time-capsule, therapy-journal)
-      prompt = MODE_PROMPTS[mode]?.(customPrompt) || customPrompt || 'Generate appropriate content for this image.'
+      if (mode === 'bedtime' && ageGroup) {
+        const agePrompts: Record<string, string> = {
+          '2-4': `You are a beloved children's author creating soothing bedtime stories for toddlers aged 2-4. Write a very simple, gentle story (80-100 words) with short sentences, repetition, and comforting imagery based on this image. Use basic vocabulary that 2-4 year olds understand. End peacefully with the child drifting to sleep. Return ONLY JSON: { "title": "a short whimsical title", "story": "text", "mood": "soothing", "ageGroup": "2-4 years" }`,
+          '4-6': `You are a beloved children's author creating magical bedtime stories for preschoolers aged 4-6. Write a gentle, enchanting story (100-130 words) with simple language and wonderful imagination based on this image. Include friendly characters and a peaceful ending. Return ONLY JSON: { "title": "a whimsical title", "story": "text", "mood": "soothing", "ageGroup": "4-6 years" }`,
+          '6-8': `You are a beloved children's author creating imaginative bedtime stories for early elementary children aged 6-8. Write an engaging story (130-160 words) with more descriptive language and a satisfying gentle adventure based on this image. Include a simple moral or lesson. Return ONLY JSON: { "title": "a creative title", "story": "text", "mood": "soothing", "ageGroup": "6-8 years" }`,
+          '8-10': `You are a beloved children's author creating rich bedtime stories for elementary children aged 8-10. Write an engaging story (150-180 words) with vivid descriptions, interesting characters, and a thoughtful conclusion based on this image. Can include slightly more complex vocabulary. Return ONLY JSON: { "title": "an imaginative title", "story": "text", "mood": "soothing", "ageGroup": "8-10 years" }`,
+        }
+        prompt = agePrompts[ageGroup] || MODE_PROMPTS[mode]?.(customPrompt) || customPrompt || 'Generate appropriate content for this image.'
+      } else {
+        prompt = MODE_PROMPTS[mode]?.(customPrompt) || customPrompt || 'Generate appropriate content for this image.'
+      }
     } else {
       prompt = customPrompt || 'Generate appropriate content for this image.'
     }
