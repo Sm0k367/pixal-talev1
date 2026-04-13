@@ -204,12 +204,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     } catch (parseError) {
       console.error('JSON parse error:', parseError)
       console.error('Raw content:', content.substring(0, 200))
-      return res.status(200).json({
-        title: 'Generated Content',
-        mood: 'mysterious',
-        story: content,
-        content: content,
-      })
+      
+      // Intelligent fallback based on mode
+      const fallbackResponses: Record<string, object> = {
+        story: { title: 'Generated Story', mood: 'mysterious', story: content },
+        lifebook: { title: 'Chapter', mood: 'reflective', story: content, content },
+        comics: { title: 'Panel', mood: 'dynamic', story: content, dialogue: content },
+        'family-lore': { title: 'Family Saga', saga: content, mood: 'nostalgic' },
+        bedtime: { title: 'Bedtime Tale', story: content, mood: 'peaceful', ageGroup: '4-6' },
+        songwriter: { title: 'Generated Song', lyrics: content, genre: 'Indie', mood: 'emotional' },
+        rpg: { title: 'Fantasy World', worldBuilding: content, description: content, mood: 'mysterious' },
+        'memory-tapestry': { title: 'Memory', content, tags: ['memory'] },
+        'time-capsule': { title: 'Time Capsule', content },
+        'therapy-journal': { title: 'Journal Entry', content, mood: 'reflective' },
+      }
+      
+      const fallback = fallbackResponses[mode] || { title: 'Generated Content', story: content, content }
+      return res.status(200).json(fallback)
     }
   } catch (error) {
     console.error('=== Handler error ===')
