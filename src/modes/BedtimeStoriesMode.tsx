@@ -49,15 +49,16 @@ export default function BedtimeStoriesMode() {
 
         if (!response.ok) throw new Error('Generation failed')
 
-        const data = await response.json()
-        const story: BedtimeStory = {
-          id: Date.now().toString(),
-          title: data.title || 'Bedtime Tale',
-          story: data.story,
-          ageGroup: selectedAgeGroup,
-          imageUrl: preview,
-          createdAt: Date.now(),
-        }
+         const data = await response.json()
+         const story: BedtimeStory = {
+           id: Date.now().toString(),
+           title: data.title || 'Bedtime Tale',
+           story: data.story,
+           mood: data.mood || 'peaceful',
+           ageGroup: selectedAgeGroup,
+           imageUrl: preview,
+           createdAt: Date.now(),
+         }
 
         setCurrentStory(story)
         setBedtimeStories([story, ...bedtimeStories].slice(0, 10))

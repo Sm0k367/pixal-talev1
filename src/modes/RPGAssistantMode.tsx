@@ -41,15 +41,16 @@ export default function RPGAssistantMode() {
 
         if (!response.ok) throw new Error('Generation failed')
 
-        const data = await response.json()
-        const world: RPGWorld = {
-          id: Date.now().toString(),
-          title: data.title || 'Untitled World',
-          description: data.description || 'A mysterious realm',
-          worldBuilding: data.worldBuilding,
-          imageUrl: preview,
-          createdAt: Date.now(),
-        }
+         const data = await response.json()
+         const world: RPGWorld = {
+           id: Date.now().toString(),
+           title: data.title || 'Untitled World',
+           description: data.description || 'A mysterious realm',
+           worldBuilding: data.worldBuilding,
+           mood: data.mood || 'mysterious',
+           imageUrl: preview,
+           createdAt: Date.now(),
+         }
 
         setCurrentWorld(world)
         setWorlds([world, ...worlds].slice(0, 10))
