@@ -124,7 +124,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     
     if (mode === 'story') {
       prompt = GENRE_PROMPTS[genre] || GENRE_PROMPTS.cinematic
-    } else if (mode === 'lifebook' || mode === 'comics') {
+    } else if (MODE_PROMPTS[mode]) {
+      // Handle all mode-specific prompts (lifebook, comics, family-lore, bedtime, songwriter, rpg, memory-tapestry, time-capsule, therapy-journal)
       prompt = MODE_PROMPTS[mode]?.(customPrompt) || customPrompt || 'Generate appropriate content for this image.'
     } else {
       prompt = customPrompt || 'Generate appropriate content for this image.'
