@@ -185,6 +185,7 @@ interface UIState {
   setCurrentFamilyLore: (lore: FamilyLore | null) => void
   addFamilyLore: (lore: FamilyLore) => void
   updateFamilyLore: (id: string, updates: Partial<FamilyLore>) => void
+  deleteFamilyLore: (id: string) => void
 
   bedtimeStories: BedtimeStory[]
   addBedtimeStory: (story: BedtimeStory) => void
@@ -311,6 +312,11 @@ export const useStore = create<UIState>()(persist((set) => ({
         state.currentFamilyLore?.id === id
           ? { ...state.currentFamilyLore, ...updates }
           : state.currentFamilyLore,
+    })),
+  deleteFamilyLore: (id) =>
+    set((state) => ({
+      familyLores: state.familyLores.filter((l) => l.id !== id),
+      currentFamilyLore: state.currentFamilyLore?.id === id ? null : state.currentFamilyLore,
     })),
 
   bedtimeStories: [],
