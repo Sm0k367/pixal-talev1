@@ -2,8 +2,12 @@
 
 **Transform a single photo into infinite creative possibilities across 10 radical modes.**
 
-**Live Demo:** https://pixal-tale.vercel.app  
-**GitHub:** https://github.com/Sm0k367/pixal-tale
+[![Test](https://github.com/Sm0k367/pixal-talev1/actions/workflows/test.yml/badge.svg)](https://github.com/Sm0k367/pixal-talev1/actions/workflows/test.yml)
+[![Build](https://github.com/Sm0k367/pixal-talev1/actions/workflows/build.yml/badge.svg)](https://github.com/Sm0k367/pixal-talev1/actions/workflows/build.yml)
+[![Deploy](https://github.com/Sm0k367/pixal-talev1/actions/workflows/deploy.yml/badge.svg)](https://github.com/Sm0k367/pixal-talev1/actions/workflows/deploy.yml)
+
+**Live Demo:** https://pixal-talev1.vercel.app  
+**GitHub:** https://github.com/Sm0k367/pixal-talev1
 
 ---
 
